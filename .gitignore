@@ -1,0 +1,5 @@
+images
+*.pyc
+*.save
+.pydevproject
+.project
