@@ -1,11 +1,8 @@
-
-import urllib, urllib2, json, sys, cgi, re
+import urllib2, sys, re
 import services.service as service
 
 searchTerm = None
 dataID = '0'
-scroller = ''
-
 searchTypes = ['TwitPic', 'Instagram']
 
 if sys.argv[1:]:
@@ -23,7 +20,7 @@ class TweetScrape:
         self.nextData(self.content)
 
     def nextData(self, content):
-        global dataID, scroller
+        global dataID
         oldID = dataID
         tempHold = []
         m = re.findall(r'data-tweet-id=\\"([0-9]+)\\"', content, re.M|re.I)
@@ -31,8 +28,6 @@ class TweetScrape:
             tempHold.append(int(i))
         print tempHold
         dataID = tempHold[len(tempHold)-1]
-        scroller = "TWEET-%s-%s" % (tempHold[0], dataID)
-        print "Next timestamp is %s" % dataID
         print ""
 
     def getImageShorts(self, content):
@@ -42,12 +37,14 @@ class TweetScrape:
             tr.hunt(self.content)
 
     def openUrl(self, term, page=0):
-        global dataID, scroller
+        global dataID
         baseUrl = "https://twitter.com/i/search/timeline?mode=realtime&src=typd&include_available_features=1&include_entities=1&max_id=%s&q=%s" % (dataID,term)
         print "Searching for images using term %s." % searchTerm
         print "Using web address : %s" % baseUrl
+        opener = urllib2.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
         try:
-            f = urllib2.urlopen(baseUrl)
+            f = opener.open(baseUrl)
         except TypeError:
             pass
         else:

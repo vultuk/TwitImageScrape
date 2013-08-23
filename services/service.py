@@ -1,4 +1,5 @@
 import urllib2, re, os
+from PIL import Image
 
 class Service:
 
@@ -19,6 +20,11 @@ class Service:
     def setUrl(self, url):
         self.url = url
 
+    def showLocation(self, filename):
+        img = Image.open(filename)
+        exifData = img._getexif()
+        print exifData
+
     def savePicture(self, url, fullUrl):
         if url:
             m = re.match(self.htmlPic, url, re.M|re.I)
@@ -27,10 +33,11 @@ class Service:
                 if os.path.exists("%s/%s" % (self.folder,filename)):
                     print "\033[31mAlready downloaded image from %s.\033[0m" % fullUrl
                 else:
-                    print "\033[32mImage from %s saved as %s.\033[0m" % (fullUrl,filename)
                     f = open("%s/%s" % (self.folder,filename), 'wb')
                     f.write(urllib2.urlopen(url).read())
                     f.close()
+                    imageLocation = self.showLocation("%s/%s" % (self.folder,filename))
+                    print "\033[32mImage from %s saved as %s.\033[0m" % (fullUrl,filename)
         else:
             print "\033[31mNo Image found at %s.\033[0m" % fullUrl
     
