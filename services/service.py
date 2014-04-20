@@ -43,9 +43,12 @@ class Service:
 
     def picFromHtml(self, url):
         content = self.openUrl(url)
-        m = re.search(self.htmlUrl, content.decode("utf-8"), re.M|re.I)
-        if m:
-            return m.group()
+        if hasattr(content, 'decode'):
+            m = re.search(self.htmlUrl, content.decode("utf-8"), re.M|re.I)
+            if m:
+                return m.group()
+        else:
+            return ""
 
     def hunt(self, content):
         m = re.findall(self.regexp, content.decode("utf-8"), re.M|re.I)
