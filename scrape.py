@@ -54,8 +54,6 @@ class TweetScrape:
     def openUrl(self, term, page=0):
         global dataID, scroller
         baseUrl = "https://twitter.com/i/search/timeline?f=realtime&src=typd&include_available_features=1&include_entities=1&scroll_cursor=%s&q=%s" % (scroller,term)
-        print ("Searching for images using term %s." % (searchTerm))
-        print()
         try:
             f = urllib.request.urlopen(baseUrl)
         except TypeError:
@@ -70,6 +68,9 @@ while 1:
 
     input_term = input("Enter Search Term: ")
     searchTerm = urllib.parse.quote(input_term)
+
+    print ("Searching for images using term %s." % (input_term))
+    print ()
 
     searchTrd = threading.Thread(target=TweetScrape, args=(searchTerm,))
     searchTrd.deamon = True
