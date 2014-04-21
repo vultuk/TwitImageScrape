@@ -10,6 +10,9 @@ currentPage = 1
 
 searchTypes = ['TwitPic', 'Instagram']
 
+searchTerm = ""
+
+
 #if sys.argv[1:]:
 #        searchTerm = sys.argv[1]
 
@@ -18,15 +21,20 @@ searchTypes = ['TwitPic', 'Instagram']
 class TweetScrape:
     content = ""
     searchTerm = ""
+    dataID = '0'
+    scroller = ''
     def __init__(self, searchTerm):
         self.searchTerm = searchTerm
+        self.run()
+
+    def run(self):
         self.content = self.openUrl(self.searchTerm)
         self.getImageShorts(self.content)
         self.nextData(self.content)
 
     def nextData(self, content):
         global dataID, scroller
-        oldID = dataID
+        oldID = self.dataID
         tempHold = []
         m = re.findall(r'data-tweet-id=\\"([0-9]+)\\"', content.decode("utf-8"), re.M|re.I)
         for i in m:
@@ -36,24 +44,25 @@ class TweetScrape:
         except IndexError:
             dataID = 0
             currentPage = 1
-            scroller = 0
+            self.scroller = 0
         else:
-            scroller = "TWEET-%s-%s" % (dataID, tempHold[0])
+            self.scroller = "TWEET-%s-%s" % (dataID, tempHold[0])
+        self.run()
 
     def getImageShorts(self, content):
-        global searchTypes
+        global searchTypes, searchTrd
         for t in searchTypes:
             tr = getattr(service, t)('images/%s' % self.searchTerm)
 
-            trd = threading.Thread(target=tr.hunt, args=(self.content,))
-            trd.deamon = True
-            trd.start()
+            searchTrd = threading.Thread(target=tr.hunt, args=(self.content,))
+            searchTrd.deamon = True
+            searchTrd.start()
 
             #tr.hunt(self.content)
 
     def openUrl(self, term, page=0):
         global dataID, scroller
-        baseUrl = "https://twitter.com/i/search/timeline?f=realtime&src=typd&include_available_features=1&include_entities=1&scroll_cursor=%s&q=%s" % (scroller,term)
+        baseUrl = "https://twitter.com/i/search/timeline?f=realtime&src=typd&include_available_features=1&include_entities=1&scroll_cursor=%s&q=%s" % (self.scroller,term)
         try:
             f = urllib.request.urlopen(baseUrl)
         except TypeError:
@@ -63,17 +72,25 @@ class TweetScrape:
             f.close()
         return buf
 
-while 1:
-    tt = None
+def keepRunning():
+    while 1:
+        input_term = input("Enter Search Term: ")
+        searchTerm = urllib.parse.quote(input_term)
 
-    input_term = input("Enter Search Term: ")
-    searchTerm = urllib.parse.quote(input_term)
+        print ("Searching for images using term %s." % (input_term))
+        print ()
 
-    print ("Searching for images using term %s." % (input_term))
-    print ()
+        downThread = threading.Thread(target=TweetScrape, args=(searchTerm,))
+        downThread.deamon = True
+        downThread.start()
 
-    searchTrd = threading.Thread(target=TweetScrape, args=(searchTerm,))
-    searchTrd.deamon = True
-    searchTrd.start()
+        #tt = TweetScrape(searchTerm)
+
+
+keepRun = threading.Thread(target=keepRunning)
+keepRun.deamon = True
+keepRun.start()
+
+
 
     #tt = TweetScrape(searchTerm)
