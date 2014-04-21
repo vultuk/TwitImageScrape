@@ -32,7 +32,12 @@ class Service:
                 if os.path.exists("%s/%s" % (self.folder,filename)) == False:
                     #print ("\033[32mImage from %s saved as %s.\033[0m" % (fullUrl,filename))
                     f = open("%s/%s" % (self.folder,filename), 'wb')
-                    f.write(urllib.request.urlopen(url).read())
+                    try:
+                        picLink = urllib.request.urlopen(url).read()
+                    except urllib.request.URLError:
+                        pass
+                    else:
+                        f.write(picLink)
                     f.close()
     
     def createPicUrl(self, shortUrl):

@@ -1,6 +1,7 @@
 
 import urllib, urllib.request, json, sys, cgi, re
 import services.service as service
+import threading
 
 searchTerm = None
 dataID = '0'
@@ -44,7 +45,12 @@ class TweetScrape:
         global searchTypes
         for t in searchTypes:
             tr = getattr(service, t)('images/%s' % self.searchTerm)
-            tr.hunt(self.content)
+
+            trd = threading.Thread(target=tr.hunt, args=(self.content,))
+            trd.deamon = True
+            trd.start()
+
+            #tr.hunt(self.content)
 
     def openUrl(self, term, page=0):
         global dataID, scroller, currentPage
