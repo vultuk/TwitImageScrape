@@ -19,6 +19,7 @@ class TweetScrape:
     searchTerm = ""
     dataID = '0'
     scroller = ''
+    minTweetId = 0
 
     # Init the class and required variables
     def __init__(self, searchTerm):
@@ -47,22 +48,18 @@ class TweetScrape:
 
         # Get a list of all tweet IDs that we have checked
         m = re.findall(r'data-tweet-id=\\"([0-9]+)\\"', content.decode("utf-8"), re.M|re.I)
+
         for i in m:
             tempHold.append(int(i))
 
-        # Check we can get the required details to generate the next page
-        try:
-            dataID = tempHold[len(tempHold)-1]
+        tempHold.sort(reverse=True)
 
-        # If we get an index error then we reset to page one
-        except IndexError:
-            dataID = 0
-            currentPage = 1
-            self.scroller = 0
+        dataID = tempHold[len(tempHold)-1]
 
-        # Create the details to request the next page of tweets
-        else:
-            self.scroller = "TWEET-%s-%s" % (dataID, tempHold[0])
+        if self.minTweetId == 0:
+            self.minTweetId = tempHold[0]
+
+        self.scroller = "TWEET-%s-%s" % (dataID, self.minTweetId)
 
         # Run the scraper
         self.run()
@@ -82,7 +79,7 @@ class TweetScrape:
     # Get the HTML from the page of tweets
     def openUrl(self, term, page=0):
         global dataID, scroller
-        baseUrl = "https://twitter.com/i/search/timeline?f=realtime&src=typd&include_available_features=1&include_entities=1&scroll_cursor=%s&q=%s" % (self.scroller,term)
+        baseUrl = "https://twitter.com/i/search/timeline?f=tweets&src=typd&include_available_features=1&include_entities=1&max_position=%s&q=%s" % (self.scroller,term)
         try:
             f = urllib.request.urlopen(baseUrl)
         except TypeError:
